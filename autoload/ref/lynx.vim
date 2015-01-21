@@ -44,10 +44,14 @@ function! s:source.get_body(query)
 	endif
 	
 	let url = a:query
+	if filereadable(substitute(a:query, '\\ ', ' ', 'g'))
+		let url = fnamemodify(a:query, ':p:gs?\\ ?%20?')
+		let url = 'file://' . (expand('/') ==# '/' ? url : '/' . tr(url, '\', '/'))
+	endif
 	call map(cmd, 'substitute(v:val, "%s", url, "g")')
 	if len(cmd) > 0 && cmd[0] =~ '^:'
 		return eval(join(cmd, ' ')[1:])
-	elseif g:ref_lynx_use_cache
+	elseif g:ref_lynx_use_cache && url !~ '^file'
 		let expr = 'ref#system(' . string(cmd) . ').stdout'
 		let res = join(ref#cache('lynx', a:query, expr), "\n")
 	else
@@ -70,7 +74,7 @@ function! s:get_url()
 	if !num
 		return ""
 	endif
-	let line = search(num.'. http', 'n')
+	let line = search(num.'. \(http\|file\):', 'n')
 	let url = matchstr(getline(line), '\s\+'.num.'. \zs.*\ze')
 	return url
 endfunction
