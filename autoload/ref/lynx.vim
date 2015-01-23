@@ -44,7 +44,7 @@ function! s:source.get_body(query)
 	endif
 	
 	let url = a:query
-	if filereadable(substitute(a:query, '\\ ', ' ', 'g'))
+	if getftype(substitute(a:query, '\\ ', ' ', 'g')) !=# ''
 		let url = fnamemodify(a:query, ':p:gs?\\ ?%20?')
 		let url = 'file://' . (expand('/') ==# '/' ? url : '/' . tr(url, '\', '/'))
 	endif
@@ -74,7 +74,7 @@ function! s:get_url()
 	if !num
 		return ""
 	endif
-	let line = search(num.'. \(http\|file\):', 'n')
+	let line = search(num.'. \(http\|file://\)', 'n')
 	let url = matchstr(getline(line), '\s\+'.num.'. \zs.*\ze')
 	return url
 endfunction
